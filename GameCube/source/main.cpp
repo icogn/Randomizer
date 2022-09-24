@@ -1555,8 +1555,8 @@ namespace mod
     KEEP_FUNC void handle_custom_hook_mDoDvdThd_mountArchive_c__execute( libtp::tp::JKRMemArchive* jkrMemArchive,
                                                                          libtp::tp::mDoDvdThd_mountArchive_c* mountArchive )
     {
-        // using libtp::JSystem::JKernel::JKRArchive;
-        // using libtp::JSystem::JKernel::JKRArchive__findFsResource;
+        using libtp::tp::JKRArchive;
+        using libtp::tp::JKRArchive_findFsResource;
         // using libtp::util::color::recolorCmprTexture;
         // using mod::dvdentrynum::DvdEntryNumId;
         // using mod::dvdentrynum::getDvdEntryNum;
