@@ -77,5 +77,14 @@ namespace mod::game_patch
 
         libtp::patch::writeBranchBL( reinterpret_cast<void*>( screenSetAddress + 0xDF0 ),
                                      reinterpret_cast<void*>( events::getPauseRupeeMax ) );
+
+        // Prep for hooking into RARC loading. Prevent setting offset 0xC to 1
+        // which would indicate to another thread which is polling this byte
+        // that the loading has finished and it can do its thing. Instead, put
+        // r26 (this) into r4. We will hook into the instruction 8 bytes later
+        // so that we can do any necessary transforms to the loaded RARC data
+        // before setting offset 0xC to 1 to indicate that loading has finished.
+        uint32_t* mDoDvdThd_mountArchive_c__execute_setOffset0xcTo1 = reinterpret_cast<uint32_t*>( 0x800160dc );
+        *mDoDvdThd_mountArchive_c__execute_setOffset0xcTo1 = 0x7f44d378;     // or r4, r26, r26
     }
 }     // namespace mod::game_patch

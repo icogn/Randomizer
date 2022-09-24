@@ -37,6 +37,8 @@
 #include "user_patch/03_customCosmetics.h"
 #include "data/flags.h"
 #include "tp/JKRExpHeap.h"
+#include "tp/JKRMemArchive.h"
+#include "tp/m_Do_dvd_thread.h"
 #include "tp/m_do_ext.h"
 #include "patch.h"
 #include "asm.h"
@@ -213,6 +215,10 @@ namespace mod
     KEEP_VAR libtp::tp::d_resource::dRes_info_c* ( *return_getResInfo )( const char* arcName,
                                                                          libtp::tp::d_resource::dRes_info_c* objectInfo,
                                                                          int32_t size ) = nullptr;
+
+    KEEP_VAR void ( *return_custom_hook_mDoDvdThd_mountArchive_c__execute )(
+        libtp::tp::JKRMemArchive* jkrMemArchive,
+        libtp::tp::mDoDvdThd_mountArchive_c* mountArchive ) = nullptr;
 
     void main()
     {
@@ -1462,9 +1468,9 @@ namespace mod
             if ( main2DArchive )
             {
                 // Get the image to use for the background window
-                void* bg = libtp::tp::JKRArchive::JKRArchive_getResource2( main2DArchive,
-                                                                           0x54494D47,     // TIMG
-                                                                           "tt_block_grade.bti" );
+                void* bg = libtp::tp::JKRArchive_getResource2( main2DArchive,
+                                                               0x54494D47,     // TIMG
+                                                               "tt_block_grade.bti" );
 
                 if ( bg )
                 {
@@ -1545,6 +1551,242 @@ namespace mod
         }
         return resourcePtr;
     }
+
+    KEEP_FUNC void handle_custom_hook_mDoDvdThd_mountArchive_c__execute( libtp::tp::JKRMemArchive* jkrMemArchive,
+                                                                         libtp::tp::mDoDvdThd_mountArchive_c* mountArchive )
+    {
+        // using libtp::JSystem::JKernel::JKRArchive;
+        // using libtp::JSystem::JKernel::JKRArchive__findFsResource;
+        // using libtp::util::color::recolorCmprTexture;
+        // using mod::dvdentrynum::DvdEntryNumId;
+        // using mod::dvdentrynum::getDvdEntryNum;
+
+        // // TODO: move this to the events file
+        // // if ( mountArchive->mEntryNumber == 0x96b )
+        // if ( mountArchive->mEntryNumber == getDvdEntryNum( DvdEntryNumId::ResObjectKmdl ) )
+        // {
+        //     // Link wearing Hero's Clothes
+
+        //     // uint8_t* recolorColor = mod::randomizer ? mod::randomizer->getColor( mod::rando::HerosClothes ) :
+        //     // nullptr;
+
+        //     uint8_t* recolorRgb = getRecolorRgb( mod::rando::RecolorId::HerosClothes );
+        //     if ( recolorRgb )
+        //     {
+        //         // uint8_t* recolorColor =
+        //         //     reinterpret_cast<mod::rando::CLR0*>( exampleClr0Data )->getColor(
+        //         //     mod::rando::Recolor::HerosClothes
+        //         //     );
+
+        //         // uint8_t recolorColor[3] = { 0xff, 0, 0 };
+
+        //         JKRArchive::SDIFileEntry* alBmdFileEntry = JKRArchive__findFsResource( jkrMemArchive, "bmwr/al.bmd", 0 );
+
+        //         if ( alBmdFileEntry )
+        //         {
+        //             uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alBmdFileEntry->data_offset );
+        //             if ( tex1Addr )
+        //             {
+        //                 recolorCmprTexture( tex1Addr, "al_upbody", recolorRgb );
+        //                 recolorCmprTexture( tex1Addr, "al_lowbody", recolorRgb );
+        //             }
+        //         }
+
+        //         JKRArchive::SDIFileEntry* alHeadBmdFileEntry =
+        //             JKRArchive__findFsResource( jkrMemArchive, "bmwr/al_head.bmd", 0 );
+
+        //         if ( alHeadBmdFileEntry )
+        //         {
+        //             uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alHeadBmdFileEntry->data_offset );
+        //             if ( tex1Addr )
+        //             {
+        //                 recolorCmprTexture( tex1Addr, "al_cap", recolorRgb );
+        //             }
+        //         }
+        //     }
+        // }
+        // // else if ( mountArchive->mEntryNumber == 0xc83 )
+        // // else if ( mountArchive->mEntryNumber == rando::getDvdEntryNum( rando::DvdEntryNumId::ResObjectZmdl ) )
+        // else if ( mountArchive->mEntryNumber == getDvdEntryNum( DvdEntryNumId::ResObjectZmdl ) )
+        // {
+        //     // Zmdl (Zora Armor)
+        //     // uint8_t recolorColor[3] = { 0xff, 0, 0 };
+        //     uint8_t recolorColor[3] = { 0xff, 0, 0 };
+        //     uint8_t recolorColor2[3] = { 0xff, 0xff, 0 };
+        //     uint8_t recolorColorHelmet[3] = { 0, 0xff, 0 };
+
+        //     JKRArchive::SDIFileEntry* alBmdFileEntry = JKRArchive__findFsResource( jkrMemArchive, "bmwr/zl.bmd", 0 );
+
+        //     if ( alBmdFileEntry != nullptr )
+        //     {
+        //         uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alBmdFileEntry->data_offset );
+        //         if ( tex1Addr != nullptr )
+        //         {
+        //             // this is the lower layer
+        //             recolorCmprTexture( tex1Addr, "zl_body", recolorColor2 );
+        //             // blue part not on legs
+        //             recolorCmprTexture( tex1Addr, "zl_armor", recolorColor );
+
+        //             // blue part on arms?
+        //             recolorCmprTexture( tex1Addr, "al_armL", recolorColor );
+
+        //             // "zl_mask" is the mask on your lower face when you are underwater
+        //             recolorCmprTexture( tex1Addr, "zl_mask", recolorColor2 );
+        //             // "zl_boots" is your flippers
+        //             recolorCmprTexture( tex1Addr, "zl_boots", recolorColor );
+        //         }
+        //     }
+
+        //     // libtp::JSystem::JKernel::JKRArchive::SDIFileEntry* alBmdFileEntryFace =
+        //     //     libtp::JSystem::JKernel::JKRArchive__findFsResource( jkrMemArchive, "bmwr/zl_face.bmd", 0 );
+
+        //     // if ( alBmdFileEntryFace != nullptr )
+        //     // {
+        //     //     uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alBmdFileEntryFace->data_offset );
+        //     //     if ( tex1Addr != nullptr )
+        //     //     {
+        //     //         // libtp::util::color::recolorCmprTexture( tex1Addr, "zl_body", recolorColor ); // this is the
+        //     //         lower
+        //     //         // layer
+        //     //         // libtp::util::color::recolorCmprTexture( tex1Addr, "zl_armor", recolorColor ); // blue part not
+        //     //         on
+        //     //         // legs
+        //     //         // "zl_mask" is the mask on your lower face when you are underwater
+        //     //         // libtp::util::color::recolorCmprTexture( tex1Addr, "zl_mask", recolorColor );
+        //     //         // "zl_boots" is your flippers
+        //     //         libtp::util::color::recolorCmprTexture( tex1Addr, "zl_face", recolorColor );
+        //     //     }
+        //     // }
+
+        //     JKRArchive::SDIFileEntry* alHeadBmdFileEntry = JKRArchive__findFsResource( jkrMemArchive, "bmwr/zl_head.bmd", 0
+        //     );
+
+        //     if ( alHeadBmdFileEntry )
+        //     {
+        //         uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alHeadBmdFileEntry->data_offset );
+        //         if ( tex1Addr )
+        //         {
+        //             recolorCmprTexture( tex1Addr, "zl_cap", recolorColor );
+        //             recolorCmprTexture( tex1Addr, "zl_helmet", recolorColorHelmet );
+        //         }
+        //     }
+        // }
+        // // else if ( mountArchive->mEntryNumber == 0x7f5 )
+        // else if ( mountArchive->mEntryNumber == getDvdEntryNum( DvdEntryNumId::ResObjectCWShd ) )
+        // {
+        //     // CWShd (Ordon shield)
+        //     uint8_t shieldColor[3] = { 0xff, 0, 0xff };
+
+        //     JKRArchive::SDIFileEntry* alShbFileEntry = JKRArchive__findFsResource( jkrMemArchive, "bmwr/al_shb.bmd", 0 );
+
+        //     if ( alShbFileEntry )
+        //     {
+        //         uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alShbFileEntry->data_offset );
+        //         if ( tex1Addr )
+        //         {
+        //             recolorCmprTexture( tex1Addr, "al_SHB", shieldColor );
+        //         }
+        //     }
+        // }
+        // // else if ( mountArchive->mEntryNumber == 0xbc5 )
+        // else if ( mountArchive->mEntryNumber == getDvdEntryNum( DvdEntryNumId::ResObjectSWShd ) )
+        // {
+        //     // SWShd (Wooden shield)
+        //     // uint8_t shieldColor[3] = { 0, 0xff, 0xff };
+        //     uint8_t shieldColor[3] = { 0x50, 0xad, 0x5d };
+
+        //     JKRArchive::SDIFileEntry* alShbFileEntry = JKRArchive__findFsResource( jkrMemArchive, "bmwr/al_shc.bmd", 0 );
+
+        //     if ( alShbFileEntry )
+        //     {
+        //         uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alShbFileEntry->data_offset );
+        //         if ( tex1Addr )
+        //         {
+        //             recolorCmprTexture( tex1Addr, "al_SHC", shieldColor );
+        //         }
+        //     }
+        // }
+        // // else if ( mountArchive->mEntryNumber == 0x923 )
+        // else if ( mountArchive->mEntryNumber == getDvdEntryNum( DvdEntryNumId::ResObjectHyShd ) )
+        // {
+        //     // HyShd (Hylian Shield)
+        //     // uint8_t shieldColor[3] = { 0xff, 0, 0xff };
+        //     // uint8_t shieldColor[3] = { 0x90, 0xee, 0x90 };     // light green
+        //     // uint8_t shieldColor[3] = { 0xff, 0xff, 0xff };
+        //     // uint8_t shieldColor[3] = { 0x51, 0x08, 0x7e };     // indigo (purple-y)
+        //     // uint8_t shieldColor[3] = { 0xa0, 0x20, 0xf0 };     // light purple
+        //     // uint8_t shieldColor[3] = { 0xfc, 0xae, 0x1e };     // marigold (light orange)
+        //     // uint8_t shieldColor[3] = { 0xff, 0xff, 0 };     // yellow
+        //     // uint8_t shieldColor[3] = { 0xcb, 0xcb, 0 };     // yellow, darker
+        //     // uint8_t shieldColor[3] = { 0x3d, 0xe2, 0x2f };     // lch hue, green
+        //     // uint8_t shieldColor[3] = { 0xcb, 0x4f, 0x6b };
+
+        //     // Actually calced from red (b9694d, which seems to blend to default red)
+        //     // uint8_t shieldColor[3] = { 0x85, 0x76, 0xc3 };     // purp, hue 296.494
+        //     // uint8_t shieldColor[3] = { 0x5e, 0x8b, 0x41 };     // green, hue 127.494
+        //     // uint8_t shieldColor[3] = { 0, 0x8a, 0xbe };     // blue, hue 244.494
+        //     uint8_t shieldColor[3] = { 0xa7, 0x74, 0x3a };     // orange-y, hue 67.494
+
+        //     JKRArchive::SDIFileEntry* alShbFileEntry = JKRArchive__findFsResource( jkrMemArchive, "bmwr/al_sha.bmd", 0 );
+
+        //     if ( alShbFileEntry )
+        //     {
+        //         uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alShbFileEntry->data_offset );
+        //         if ( tex1Addr )
+        //         {
+        //             recolorCmprTexture( tex1Addr, "al_SHA", shieldColor );
+        //         }
+        //     }
+        // }
+        // // else if ( mountArchive->mEntryNumber == 0xc55 )
+        // else if ( mountArchive->mEntryNumber == getDvdEntryNum( DvdEntryNumId::ResObjectWmdl ) )
+        // {
+        //     // Wmdl (Wolf Link, including Midna on back. Midna.arc is
+        //     // one that shows up when you press Z)
+
+        //     // libtp::JSystem::JKernel::JKRArchive::SDIFileEntry* mdHairHandFileEntry =
+        //     //     libtp::JSystem::JKernel::JKRArchive__findFsResource( jkrMemArchive, "bmdv/md_hair_hand.bmd", 0 );
+
+        //     // if ( mdHairHandFileEntry != nullptr )
+        //     // {
+        //     //     uint8_t* mdHairHandBmdAddr = jkrMemArchive->mArchiveData + mdHairHandFileEntry->data_offset;
+        //     //     // uint32_t* ptt = reinterpret_cast<uint32_t*>( mdHairHandBmdAddr + 0x4174 );
+        //     //     // ptt[0] = 0;
+        //     //     // ptt[1] = 0;
+        //     //     // ptt[2] = 0;
+        //     //     // ptt[3] = 0x00ff00ff;
+        //     //     for ( int i = 0; i < 4; i++ )
+        //     //     {
+        //     //         // ptt[i] = 0x000000ff;
+        //     //         // ptt[i] = 0xffff00ff;
+        //     //         // ptt[i] = 0xff000000;
+        //     //     }
+
+        //     //     // mdHairHandBmdAddr[0x41b1] = 0xE;
+
+        //     //     // mdHairHandBmdAddr[0x41c5] = 0xE;
+        //     //     // mdHairHandBmdAddr[0x41c8] = 0xF;
+        //     // }
+
+        //     // libtp::JSystem::JKernel::JKRArchive::SDIFileEntry* mdFileEntry =
+        //     //     libtp::JSystem::JKernel::JKRArchive__findFsResource( jkrMemArchive, "bmdv/md.bmd", 0 );
+
+        //     // if ( mdFileEntry != nullptr )
+        //     // {
+        //     //     uint8_t* mdHairHandBmdAddr = jkrMemArchive->mArchiveData + mdFileEntry->data_offset;
+        //     //     uint32_t* ptt = reinterpret_cast<uint32_t*>( mdHairHandBmdAddr + 0x11290 );
+        //     //     for ( int i = 0; i < 6; i++ )
+        //     //     {
+        //     //         ptt[i] = 0x0;
+        //     //     }
+        //     //     ptt[2] = 0x00ff00ff;
+        //     // }
+        // }
+
+        mountArchive->mIsDone = true;
+
+        return return_custom_hook_mDoDvdThd_mountArchive_c__execute( jkrMemArchive, mountArchive );
+    };
 
     uint32_t rand( uint32_t* seed )
     {

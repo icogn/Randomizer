@@ -22,6 +22,8 @@
 #include "Z2AudioLib/Z2SoundMgr.h"
 #include "tp/dynamic_link.h"
 #include "gc_wii/OSTime.h"
+#include "tp/JKRMemArchive.h"
+#include "tp/m_Do_dvd_thread.h"
 
 #include <cstdint>
 
@@ -175,6 +177,10 @@ namespace mod
 
         // Archive/Resource functions
         return_getResInfo = patch::hookFunction( libtp::tp::d_resource::getResInfo, mod::handle_getResInfo );
+
+        return_custom_hook_mDoDvdThd_mountArchive_c__execute = patch::hookFunction(
+            reinterpret_cast<void ( * )( libtp::tp::JKRMemArchive*, libtp::tp::mDoDvdThd_mountArchive_c* )>( 0x800160e4 ),
+            mod::handle_custom_hook_mDoDvdThd_mountArchive_c__execute );
     }
 
     void initRandNext()

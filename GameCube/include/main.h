@@ -23,6 +23,8 @@
 #include "Z2AudioLib/Z2SceneMgr.h"
 #include "events.h"
 #include "tp/d_resource.h"
+#include "tp/JKRMemArchive.h"
+#include "tp/m_Do_dvd_thread.h"
 
 // Number of lines that should not be cleared when flushing the screen
 #define CONSOLE_PROTECTED_LINES 4
@@ -378,6 +380,11 @@ namespace mod
     extern libtp::tp::d_resource::dRes_info_c* ( *return_getResInfo )( const char* arcName,
                                                                        libtp::tp::d_resource::dRes_info_c* objectInfo,
                                                                        int32_t size );
+
+    extern void handle_custom_hook_mDoDvdThd_mountArchive_c__execute( libtp::tp::JKRMemArchive* jkrMemArchive,
+                                                                      libtp::tp::mDoDvdThd_mountArchive_c* mountArchive );
+    extern void ( *return_custom_hook_mDoDvdThd_mountArchive_c__execute )( libtp::tp::JKRMemArchive* jkrMemArchive,
+                                                                           libtp::tp::mDoDvdThd_mountArchive_c* mountArchive );
 
 }     // namespace mod
 #endif
