@@ -20,6 +20,7 @@
 #include "tp/d_meter2_info.h"
 #include "tp/dzx.h"
 #include "memory.h"
+#include "rando/clr0.h"
 
 namespace mod::rando
 {
@@ -387,5 +388,14 @@ namespace mod::rando
         }
         // Default
         return libtp::data::items::Recovery_Heart;
+    }
+
+    uint8_t* Randomizer::getRecolorRgb( RecolorId recolorId )
+    {
+        if ( m_Seed->m_CLR0 != nullptr )
+        {
+            return m_Seed->m_CLR0->getRecolorRgb( recolorId );
+        }
+        return nullptr;
     }
 }     // namespace mod::rando
