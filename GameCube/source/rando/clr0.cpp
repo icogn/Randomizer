@@ -9,6 +9,15 @@
 
 namespace mod::rando
 {
+    enum RecolorType : uint8_t
+    {
+        Rgb = 0,
+        RgbArray = 1,
+        Invalid = 0xFF,
+    };
+
+    uint32_t CLR0_AS_U32 = 0x434C5230;     // "CLR0" as a u32
+
     // Maps nibble value to how many bits it has set.
     uint8_t NIBBLE_LOOKUP[16] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
 
@@ -39,19 +48,23 @@ namespace mod::rando
 
     uint8_t* CLR0::getRecolorRgb( RecolorId recolorId )
     {
-        if ( recolorId > this->maxRecolorId || this->dataFormat != DataFormat::BASIC )
+        if ( *reinterpret_cast<uint32_t*>( magic ) != CLR0_AS_U32 || bitTableOffset == 0 || recolorId < minRecolorId ||
+             recolorId > maxRecolorId )
         {
-            // RecolorId is guaranteed to not have any data in the CLR0 chunk or
-            // the dataFormat is not supported.
+            // If magic doesn't match or bitTableOffset is 0 (meaning CLR0
+            // stores no colors) or recolorEnum is not in range, then return
+            // null result.
             return nullptr;
         }
 
         uint8_t* thisAddr = reinterpret_cast<uint8_t*>( this );
         uint8_t* bitTable = thisAddr + this->bitTableOffset;
 
-        uint8_t tableIndex = recolorId >> 3;
-        uint8_t bitIndex = recolorId & 0x7;
-        uint8_t bitTableEntry = bitTable[tableIndex];
+        uint16_t diff = recolorId - minRecolorId;
+
+        uint8_t bitTableIndex = diff >> 3;
+        uint8_t bitIndex = diff & 0x7;
+        uint8_t bitTableEntry = bitTable[bitTableIndex];
 
         if ( ( bitTableEntry & ( 1 << bitIndex ) ) == 0 )
         {
@@ -59,20 +72,26 @@ namespace mod::rando
             return nullptr;
         }
 
-        // Find index in RGB table.
-        uint16_t* cummulativeSums = reinterpret_cast<uint16_t*>( thisAddr + this->cummulativeSumsOffset );
-        uint16_t rgbTableIndex = cummulativeSums[tableIndex] + countSetBitsToRight( bitTableEntry, bitIndex );
-
-        uint8_t* colorPtr = thisAddr + this->rbgDataOffset + ( rgbTableIndex * 3 );
-
-        // Check that color is within bounds of the CLR0 chunk. Each color is 3
-        // bytes long, so 3 bytes after the colorPtr should be at most the start
-        // of the next seed chunk.
-        if ( colorPtr + 3 <= thisAddr + this->size )
+        uint16_t cummSum = 0;
+        if ( bitTableIndex > 0 )
         {
-            return colorPtr;
+            uint16_t* cummulativeSums = reinterpret_cast<uint16_t*>( thisAddr + cummSumsOffset );
+            cummSum = cummulativeSums[bitTableIndex - 1];
         }
 
-        return nullptr;
+        uint16_t basicDataIndex = cummSum + countSetBitsToRight( bitTableEntry, bitIndex );
+
+        uint32_t* basicDataTable = reinterpret_cast<uint32_t*>( thisAddr + basicDataOffset );
+
+        uint32_t* basicDataEntryPtr = &basicDataTable[basicDataIndex];
+
+        uint8_t recolorType = ( *basicDataEntryPtr >> 24 ) & 0xff;
+
+        if ( recolorType != RecolorType::Rgb )
+        {
+            return nullptr;
+        }
+
+        return reinterpret_cast<uint8_t*>( basicDataEntryPtr ) + 1;
     }
 }     // namespace mod::rando

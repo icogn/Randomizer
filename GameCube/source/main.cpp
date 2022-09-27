@@ -1569,50 +1569,43 @@ namespace mod
         using libtp::util::texture::recolorCmprTexture;
         using mod::dvdentrynum::DvdEntryNumId;
         using mod::dvdentrynum::getDvdEntryNum;
+        using rando::RecolorId;
 
         // // TODO: move this to the events file
         // // if ( mountArchive->mEntryNumber == 0x96b )
         if ( mountArchive->mEntryNumber == getDvdEntryNum( DvdEntryNumId::ResObjectKmdl ) )
         {
             // Link wearing Hero's Clothes
-
-            // uint8_t* recolorColor = mod::randomizer ? mod::randomizer->getColor( mod::rando::HerosClothes ) :
-            // nullptr;
-
-            // uint8_t* recolorRgb = getRecolorRgb( mod::rando::RecolorId::HerosClothes );
-            // if ( recolorRgb )
-            // {
-            // uint8_t* recolorColor =
-            //     reinterpret_cast<mod::rando::CLR0*>( exampleClr0Data )->getColor(
-            //     mod::rando::Recolor::HerosClothes
-            //     );
-
-            // uint8_t recolorRgb[3] = { 0xff, 0, 0 };
-            uint8_t recolorRgb[3] = { 0xfc, 0xae, 0x1e };
-
-            JKRArchive::SDIFileEntry* alBmdFileEntry = JKRArchive_findFsResource( jkrMemArchive, "bmwr/al.bmd", 0 );
-
-            if ( alBmdFileEntry )
+            uint8_t* recolorRgb = getRecolorRgb( RecolorId::HerosClothes );
+            if ( recolorRgb != nullptr )
             {
-                uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alBmdFileEntry->data_offset );
-                if ( tex1Addr )
+                JKRArchive::SDIFileEntry* alBmdFileEntry = JKRArchive_findFsResource( jkrMemArchive, "bmwr/al.bmd", 0 );
+
+                if ( alBmdFileEntry )
                 {
-                    recolorCmprTexture( tex1Addr, "al_upbody", recolorRgb );
-                    recolorCmprTexture( tex1Addr, "al_lowbody", recolorRgb );
+                    uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alBmdFileEntry->data_offset );
+                    if ( tex1Addr )
+                    {
+                        // Green part above belt
+                        recolorCmprTexture( tex1Addr, "al_upbody", recolorRgb );
+                        // Green part below belt
+                        recolorCmprTexture( tex1Addr, "al_lowbody", recolorRgb );
+                    }
+                }
+
+                JKRArchive::SDIFileEntry* alHeadBmdFileEntry =
+                    JKRArchive_findFsResource( jkrMemArchive, "bmwr/al_head.bmd", 0 );
+
+                if ( alHeadBmdFileEntry )
+                {
+                    uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alHeadBmdFileEntry->data_offset );
+                    if ( tex1Addr )
+                    {
+                        // Hat
+                        recolorCmprTexture( tex1Addr, "al_cap", recolorRgb );
+                    }
                 }
             }
-
-            JKRArchive::SDIFileEntry* alHeadBmdFileEntry = JKRArchive_findFsResource( jkrMemArchive, "bmwr/al_head.bmd", 0 );
-
-            if ( alHeadBmdFileEntry )
-            {
-                uint8_t* tex1Addr = findTex1InBmd( jkrMemArchive->mArchiveData + alHeadBmdFileEntry->data_offset );
-                if ( tex1Addr )
-                {
-                    recolorCmprTexture( tex1Addr, "al_cap", recolorRgb );
-                }
-            }
-            // }
         }
         // // else if ( mountArchive->mEntryNumber == 0xc83 )
         // // else if ( mountArchive->mEntryNumber == rando::getDvdEntryNum( rando::DvdEntryNumId::ResObjectZmdl ) )
