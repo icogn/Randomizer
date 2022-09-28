@@ -27,19 +27,6 @@ namespace mod::user_patch
         0x000000FF      // Black
     };
 
-    const uint32_t aButtonColorRGBA[] = {
-        0xFFFFFFFF,     // Default
-        0xFF0000FF,     // Red
-        0xFF5000FF,     // Orange
-        0xFFAF00FF,     // Yellow
-        0x0080FFFF,     // Dark Green
-        0x0000FFFF,     // Blue
-        0x8000FFFF,     // Purple
-        0x000000FF,     // Black
-        0x5555FFFF,     // Grey
-        0xFF20FFFF,     // Pink
-    };
-
     const uint32_t bButtonColorRGBA[] = {
         0xFFFFFFFF,     // Default
         0xFFFF40FF,     // Orange
@@ -89,6 +76,18 @@ namespace mod::user_patch
         { 0x30, 0xD0, 0xD0, 0x30, 0xD0, 0xD0 },     // Cyan
     };
 
+    // Returns a u32 where the first 3 bytes are R, G, and B, and the 4th byte
+    // is always 0xFF.
+    uint32_t getButtonColor( rando::RecolorId recolorId )
+    {
+        uint8_t* aBtnRgb = randomizer->getRecolorRgb( recolorId );
+        if ( aBtnRgb != nullptr )
+        {
+            return *reinterpret_cast<uint32_t*>( aBtnRgb ) | 0xFF;
+        }
+        return 0xFFFFFFFF;
+    }
+
     void setHUDCosmetics( rando::Randomizer* randomizer )
     {
         // Make sure the randomizer is loaded/enabled and a seed is loaded
@@ -102,7 +101,6 @@ namespace mod::user_patch
 
         const rando::Header* seedHeader = &randomizer->m_SeedInfo.header;
         const uint8_t heartColorIndex = seedHeader->heartColor;
-        const uint8_t aButtonColorIndex = seedHeader->aButtonColor;
         const uint8_t bButtonColorIndex = seedHeader->bButtonColor;
         const uint8_t xButtonColorIndex = seedHeader->xButtonColor;
         const uint8_t yButtonColorIndex = seedHeader->yButtonColor;
@@ -116,7 +114,7 @@ namespace mod::user_patch
         uint32_t mWindowYRaw = reinterpret_cast<uint32_t>( mpMeterDraw->mpButtonXY[1]->mWindow );
         uint32_t mWindowZRaw = reinterpret_cast<uint32_t>( mpMeterDraw->mpButtonXY[2]->mWindow );
 
-        const uint32_t aButtonColor = aButtonColorRGBA[aButtonColorIndex];
+        const uint32_t aButtonColor = getButtonColor( rando::RecolorId::ABtn );
         const uint32_t bButtonColor = bButtonColorRGBA[bButtonColorIndex];
         const uint32_t xButtonColor = xyButtonColorRGBA[xButtonColorIndex];
         const uint32_t yButtonColor = xyButtonColorRGBA[yButtonColorIndex];

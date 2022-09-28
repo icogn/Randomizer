@@ -20,9 +20,10 @@ namespace mod::rando
     enum RecolorId : uint16_t
     {
         HerosClothes = 0x00,     // Cap and body
-        ZoraArmorPrimary = 0x01,
-        ZoraArmorSecondary = 0x02,
-        ZoraArmorHelmet = 0x03,
+        ABtn = 0x01,
+        // ZoraArmorPrimary = 0x01,
+        // ZoraArmorSecondary = 0x02,
+        // ZoraArmorHelmet = 0x03,
     };
 
     class CLR0
