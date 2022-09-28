@@ -27,17 +27,29 @@ namespace mod::user_patch
         0x000000FF      // Black
     };
 
-    const uint8_t lanternColors[][6] = {
-        { 0x50, 0x28, 0x14, 0x28, 0x1E, 0x0A },     // Default
-        { 0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00 },     // Red
-        { 0xF6, 0x88, 0x21, 0xF6, 0x88, 0x21 },     // Orange
-        { 0xF6, 0xF3, 0x21, 0xF6, 0xF3, 0x21 },     // Yellow
-        { 0x00, 0xFF, 0x00, 0x00, 0xFF, 0x00 },     // Green
-        { 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF },     // Blue
-        { 0x80, 0x00, 0xFF, 0x80, 0x00, 0xFF },     // Purple
-        { 0xA0, 0xA0, 0xA0, 0xA0, 0xA0, 0xA0 },     // White
-        { 0x30, 0xD0, 0xD0, 0x30, 0xD0, 0xD0 },     // Cyan
-    };
+    void getLanternGlowColor( uint8_t* outLanternColors )
+    {
+        uint8_t* lanternGlowRgb = randomizer->getRecolorRgb( rando::RecolorId::LanternGlow );
+        if ( lanternGlowRgb != nullptr )
+        {
+            outLanternColors[0] = lanternGlowRgb[0];
+            outLanternColors[1] = lanternGlowRgb[1];
+            outLanternColors[2] = lanternGlowRgb[2];
+            outLanternColors[3] = lanternGlowRgb[0];
+            outLanternColors[4] = lanternGlowRgb[1];
+            outLanternColors[5] = lanternGlowRgb[2];
+        }
+        else
+        {
+            // Default colors
+            outLanternColors[0] = 0x50;
+            outLanternColors[1] = 0x28;
+            outLanternColors[2] = 0x14;
+            outLanternColors[3] = 0x28;
+            outLanternColors[4] = 0x1E;
+            outLanternColors[5] = 0x0A;
+        }
+    }
 
     // Returns a u32 where the first 3 bytes are R, G, and B, and the 4th byte
     // is always 0xFF.
@@ -248,17 +260,19 @@ namespace mod::user_patch
 
         // Set lantern variables
         daAlinkHIO_kandelaar_c0* tempLanternVars = &lanternVars;
-        const uint8_t* lanternColor = &lanternColors[randomizer->m_SeedInfo.header.lanternColor][0];
         daAlinkHIO_huLight_c0* tempHuLightVars = &huLightVars;
 
-        tempLanternVars->innerSphereR = lanternColor[0];
-        tempLanternVars->innerSphereG = lanternColor[1];
-        tempLanternVars->innerSphereB = lanternColor[2];
-        tempLanternVars->outerSphereR = lanternColor[3];
-        tempLanternVars->outerSphereG = lanternColor[4];
-        tempLanternVars->outerSphereB = lanternColor[5];
-        tempHuLightVars->lanternAmbienceR = lanternColor[0];
-        tempHuLightVars->lanternAmbienceG = lanternColor[1];
-        tempHuLightVars->lanternAmbienceB = lanternColor[2];
+        uint8_t lanternGlowColors[6];
+        getLanternGlowColor( lanternGlowColors );
+
+        tempLanternVars->innerSphereR = lanternGlowColors[0];
+        tempLanternVars->innerSphereG = lanternGlowColors[1];
+        tempLanternVars->innerSphereB = lanternGlowColors[2];
+        tempLanternVars->outerSphereR = lanternGlowColors[3];
+        tempLanternVars->outerSphereG = lanternGlowColors[4];
+        tempLanternVars->outerSphereB = lanternGlowColors[5];
+        tempHuLightVars->lanternAmbienceR = lanternGlowColors[0];
+        tempHuLightVars->lanternAmbienceG = lanternGlowColors[1];
+        tempHuLightVars->lanternAmbienceB = lanternGlowColors[2];
     }
 }     // namespace mod::user_patch

@@ -25,6 +25,7 @@ namespace mod::rando
         XBtn = 0x03,
         YBtn = 0x04,
         ZBtn = 0x05,
+        LanternGlow = 0x06,
         // ZoraArmorPrimary = 0x01,
         // ZoraArmorSecondary = 0x02,
         // ZoraArmorHelmet = 0x03,
