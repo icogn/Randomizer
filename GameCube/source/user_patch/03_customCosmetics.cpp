@@ -27,17 +27,6 @@ namespace mod::user_patch
         0x000000FF      // Black
     };
 
-    const uint32_t bButtonColorRGBA[] = {
-        0xFFFFFFFF,     // Default
-        0xFFFF40FF,     // Orange
-        0xFFA0FFFF,     // Pink
-        0x00E87BFF,     // Green
-        0x00AAFFFF,     // Blue
-        0x6078FFFF,     // Purple
-        0x000000FF,     // Black
-        0x00F3FFFF,     // Teal
-    };
-
     const uint32_t xyButtonColorRGBA[] = {
         0xFFFFFFFF,     // Default
         0xFF0000FF,     // Red
@@ -101,7 +90,6 @@ namespace mod::user_patch
 
         const rando::Header* seedHeader = &randomizer->m_SeedInfo.header;
         const uint8_t heartColorIndex = seedHeader->heartColor;
-        const uint8_t bButtonColorIndex = seedHeader->bButtonColor;
         const uint8_t xButtonColorIndex = seedHeader->xButtonColor;
         const uint8_t yButtonColorIndex = seedHeader->yButtonColor;
         const uint8_t zButtonColorIndex = seedHeader->zButtonColor;
@@ -115,7 +103,7 @@ namespace mod::user_patch
         uint32_t mWindowZRaw = reinterpret_cast<uint32_t>( mpMeterDraw->mpButtonXY[2]->mWindow );
 
         const uint32_t aButtonColor = getButtonColor( rando::RecolorId::ABtn );
-        const uint32_t bButtonColor = bButtonColorRGBA[bButtonColorIndex];
+        const uint32_t bButtonColor = getButtonColor( rando::RecolorId::BBtn );
         const uint32_t xButtonColor = xyButtonColorRGBA[xButtonColorIndex];
         const uint32_t yButtonColor = xyButtonColorRGBA[yButtonColorIndex];
         const uint32_t zButtonColor = zButtonColorRGBA[zButtonColorIndex];
