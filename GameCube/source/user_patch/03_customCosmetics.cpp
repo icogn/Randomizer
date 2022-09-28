@@ -27,32 +27,6 @@ namespace mod::user_patch
         0x000000FF      // Black
     };
 
-    const uint32_t xyButtonColorRGBA[] = {
-        0xFFFFFFFF,     // Default
-        0xFF0000FF,     // Red
-        0xFF8200FF,     // Orange
-        0xF7DF00FF,     // Yellow
-        0x70FF00FF,     // Lime Green
-        0x00BD11FF,     // Dark Green
-        0x0000FFFF,     // Blue
-        0x880088FF,     // Purple
-        0x000000FF,     // Black
-        0xFF00AAFF,     // Pink
-        0x00FFFFFF      // Cyan
-    };
-
-    const uint32_t zButtonColorRGBA[] = {
-        0xFFFFFFFF,     // Default
-        0xFF0000FF,     // Red
-        0xFF8200FF,     // Orange
-        0xF7DF00FF,     // Yellow
-        0x70FF00FF,     // Lime Green
-        0x00BD11FF,     // Dark Green
-        0x880088FF,     // Purple
-        0x000000FF,     // Black
-        0x00FFFFFF      // Light Blue
-    };
-
     const uint8_t lanternColors[][6] = {
         { 0x50, 0x28, 0x14, 0x28, 0x1E, 0x0A },     // Default
         { 0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00 },     // Red
@@ -90,9 +64,6 @@ namespace mod::user_patch
 
         const rando::Header* seedHeader = &randomizer->m_SeedInfo.header;
         const uint8_t heartColorIndex = seedHeader->heartColor;
-        const uint8_t xButtonColorIndex = seedHeader->xButtonColor;
-        const uint8_t yButtonColorIndex = seedHeader->yButtonColor;
-        const uint8_t zButtonColorIndex = seedHeader->zButtonColor;
 
         libtp::tp::d_meter2_draw::dMeter2Draw_c* mpMeterDraw = g_meter2_info.mMeterClass->mpMeterDraw;
 
@@ -104,9 +75,9 @@ namespace mod::user_patch
 
         const uint32_t aButtonColor = getButtonColor( rando::RecolorId::ABtn );
         const uint32_t bButtonColor = getButtonColor( rando::RecolorId::BBtn );
-        const uint32_t xButtonColor = xyButtonColorRGBA[xButtonColorIndex];
-        const uint32_t yButtonColor = xyButtonColorRGBA[yButtonColorIndex];
-        const uint32_t zButtonColor = zButtonColorRGBA[zButtonColorIndex];
+        const uint32_t xButtonColor = getButtonColor( rando::RecolorId::XBtn );
+        const uint32_t yButtonColor = getButtonColor( rando::RecolorId::YBtn );
+        const uint32_t zButtonColor = getButtonColor( rando::RecolorId::ZBtn );
 
         for ( uint32_t i = 0x248; i <= 0x254; i += 0x4 )
         {

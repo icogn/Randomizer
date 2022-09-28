@@ -22,6 +22,9 @@ namespace mod::rando
         HerosClothes = 0x00,     // Cap and body
         ABtn = 0x01,
         BBtn = 0x02,
+        XBtn = 0x03,
+        YBtn = 0x04,
+        ZBtn = 0x05,
         // ZoraArmorPrimary = 0x01,
         // ZoraArmorSecondary = 0x02,
         // ZoraArmorHelmet = 0x03,
