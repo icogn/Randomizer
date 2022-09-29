@@ -26,9 +26,16 @@ namespace mod::rando
         YBtn = 0x04,
         ZBtn = 0x05,
         LanternGlow = 0x06,
+        Hearts = 0x07,
         // ZoraArmorPrimary = 0x01,
         // ZoraArmorSecondary = 0x02,
         // ZoraArmorHelmet = 0x03,
+    };
+
+    struct CLR0RgbArray
+    {
+        uint8_t* rgbArrPtr;
+        uint8_t arrLength;
     };
 
     class CLR0
@@ -69,6 +76,19 @@ namespace mod::rando
          * @return uint8_t* Pointer to 3 bytes (R,G,B), or nullptr.
          */
         uint8_t* getRecolorRgb( RecolorId );
+        bool getRecolorRgbArray( RecolorId recolorId, CLR0RgbArray* out );
+
+       private:
+        enum RecolorType : uint8_t
+        {
+            Rgb = 0,
+            RgbArray = 1,
+            Invalid = 0xFF,
+        };
+
+        uint32_t* getBasicDataEntryPtr( RecolorId, RecolorType );
+        uint8_t* getComplexDataEntryPtr( RecolorId, RecolorType );
+
     } __attribute__( ( __packed__ ) );
 
 }     // namespace mod::rando

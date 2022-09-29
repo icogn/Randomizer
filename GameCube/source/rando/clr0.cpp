@@ -9,13 +9,6 @@
 
 namespace mod::rando
 {
-    enum RecolorType : uint8_t
-    {
-        Rgb = 0,
-        RgbArray = 1,
-        Invalid = 0xFF,
-    };
-
     uint32_t CLR0_AS_U32 = 0x434C5230;     // "CLR0" as a u32
 
     // Maps nibble value to how many bits it has set.
@@ -46,7 +39,7 @@ namespace mod::rando
         return result;
     }
 
-    uint8_t* CLR0::getRecolorRgb( RecolorId recolorId )
+    uint32_t* CLR0::getBasicDataEntryPtr( RecolorId recolorId, RecolorType desiredRecolorType )
     {
         if ( *reinterpret_cast<uint32_t*>( magic ) != CLR0_AS_U32 || bitTableOffset == 0 || recolorId < minRecolorId ||
              recolorId > maxRecolorId )
@@ -85,13 +78,64 @@ namespace mod::rando
 
         uint32_t* basicDataEntryPtr = &basicDataTable[basicDataIndex];
 
-        uint8_t recolorType = ( *basicDataEntryPtr >> 24 ) & 0xff;
+        uint8_t actualRecolorType = ( *basicDataEntryPtr >> 24 ) & 0xff;
+        if ( actualRecolorType != desiredRecolorType )
+        {
+            return nullptr;
+        }
 
-        if ( recolorType != RecolorType::Rgb )
+        return basicDataEntryPtr;
+    }
+
+    uint8_t* CLR0::getComplexDataEntryPtr( RecolorId recolorId, RecolorType desiredRecolorType )
+    {
+        // Only return complexData if recolorType is one which has complexData.
+        // Right now the only one which does is RgbArray.
+        if ( desiredRecolorType != RecolorType::RgbArray )
+        {
+            return nullptr;
+        }
+
+        uint32_t* basicDataEntryPtr = getBasicDataEntryPtr( recolorId, desiredRecolorType );
+
+        if ( basicDataEntryPtr == nullptr )
+        {
+            return nullptr;
+        }
+
+        uint32_t complexDataEntryOffset = *basicDataEntryPtr & 0x00FFFFFF;
+
+        uint8_t* thisAddr = reinterpret_cast<uint8_t*>( this );
+        uint8_t* complexData = thisAddr + this->complexDataOffset;
+
+        return complexData + complexDataEntryOffset;
+    }
+
+    uint8_t* CLR0::getRecolorRgb( RecolorId recolorId )
+    {
+        uint32_t* basicDataEntryPtr = getBasicDataEntryPtr( recolorId, RecolorType::Rgb );
+
+        if ( basicDataEntryPtr == nullptr )
         {
             return nullptr;
         }
 
         return reinterpret_cast<uint8_t*>( basicDataEntryPtr ) + 1;
+    }
+
+    bool CLR0::getRecolorRgbArray( RecolorId recolorId, CLR0RgbArray* outStruct )
+    {
+        uint8_t* complexDataEntryPtr = getComplexDataEntryPtr( recolorId, RecolorType::RgbArray );
+
+        if ( complexDataEntryPtr == nullptr )
+        {
+            return false;
+        }
+
+        // Fill in struct.
+        outStruct->arrLength = complexDataEntryPtr[0];
+        outStruct->rgbArrPtr = complexDataEntryPtr + 1;
+
+        return true;
     }
 }     // namespace mod::rando

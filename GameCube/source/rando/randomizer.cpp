@@ -398,4 +398,13 @@ namespace mod::rando
         }
         return nullptr;
     }
+
+    bool Randomizer::getRecolorRgbArray( RecolorId recolorId, CLR0RgbArray* outStruct )
+    {
+        if ( m_Seed->m_CLR0 != nullptr )
+        {
+            return m_Seed->m_CLR0->getRecolorRgbArray( recolorId, outStruct );
+        }
+        return false;
+    }
 }     // namespace mod::rando

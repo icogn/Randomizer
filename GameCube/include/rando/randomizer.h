@@ -38,6 +38,7 @@ namespace mod::rando
         uint8_t overrideBugReward( uint8_t bugID );
         uint8_t getHiddenSkillItem( uint16_t eventIndex );
         uint8_t* getRecolorRgb( RecolorId recolorId );
+        bool getRecolorRgbArray( RecolorId recolorId, CLR0RgbArray* outStruct );
 
         // Subrel
         Randomizer( MinSeedInfo* minSeedInfo, uint8_t selectedSeed );

@@ -12,21 +12,10 @@
 #include "tp/d_a_alink.h"
 #include "tp/d_meter2_info.h"
 #include "user_patch/user_patch.h"
+#include "rando/clr0.h"
 
 namespace mod::user_patch
 {
-    // Color definitions for different icons.
-    const uint32_t heartColorRGBA[] = {
-        0xFFFFFFFF,     // Default
-        0xFFA0FFFF,     // Pink
-        0xFFFF40FF,     // Orange
-        0x00E87BFF,     // Green
-        0x00F3FFFF,     // Teal
-        0x00AAFFFF,     // Blue
-        0x6078FFFF,     // Purple
-        0x000000FF      // Black
-    };
-
     void getLanternGlowColor( uint8_t* outLanternColors )
     {
         uint8_t* lanternGlowRgb = randomizer->getRecolorRgb( rando::RecolorId::LanternGlow );
@@ -73,9 +62,6 @@ namespace mod::user_patch
 
         using namespace libtp::tp::d_meter2_info;
         using namespace libtp::data::items;
-
-        const rando::Header* seedHeader = &randomizer->m_SeedInfo.header;
-        const uint8_t heartColorIndex = seedHeader->heartColor;
 
         libtp::tp::d_meter2_draw::dMeter2Draw_c* mpMeterDraw = g_meter2_info.mMeterClass->mpMeterDraw;
 
@@ -125,21 +111,38 @@ namespace mod::user_patch
         }
 
         // Patch Heart Color
-        // uint32_t bigHeartColor = 0;
         uint32_t mWindowRaw;
 
-        const uint32_t* tempHeartColorRGBA = heartColorRGBA;
-        constexpr uint32_t heartListSize = sizeof( heartColorRGBA ) / sizeof( heartColorRGBA[0] );
+        uint32_t* tempHeartColorRGBA;
+        uint32_t heartListSize = 1;
 
-        // Failsafe: Make sure heartColorIndex is valid
-        uint32_t heartColor;
-        if ( heartColorIndex < heartListSize )
+        rando::CLR0RgbArray heartRgbArr;
+        if ( randomizer->getRecolorRgbArray( rando::RecolorId::Hearts, &heartRgbArr ) )
         {
-            heartColor = tempHeartColorRGBA[heartColorIndex];
+            heartListSize = heartRgbArr.arrLength;
+
+            tempHeartColorRGBA = new uint32_t[heartListSize];
+
+            for ( uint8_t rgbIdx = 0; rgbIdx < heartListSize; rgbIdx++ )
+            {
+                uint8_t* rgbPtr = heartRgbArr.rgbArrPtr + 3 * rgbIdx;
+                uint32_t rgba = *reinterpret_cast<uint32_t*>( rgbPtr ) | 0xFF;
+                tempHeartColorRGBA[rgbIdx] = rgba;
+            }
         }
         else
         {
-            heartColor = 0;
+            tempHeartColorRGBA = new uint32_t[1];
+
+            uint8_t* heartRgb = randomizer->getRecolorRgb( rando::RecolorId::Hearts );
+            if ( heartRgb != nullptr )
+            {
+                tempHeartColorRGBA[0] = *reinterpret_cast<uint32_t*>( heartRgb ) | 0xFF;
+            }
+            else
+            {
+                tempHeartColorRGBA[0] = 0xFFFFFFFF;
+            }
         }
 
         /*
@@ -147,8 +150,7 @@ namespace mod::user_patch
             libtp::tp::d_com_inf_game::dComIfG_gameInfo.save.save_file.player.player_status_a.maxHealth / 5;
         */
 
-        const bool heartColorIsRainbow = heartColorIndex == 8;
-        for ( uint32_t i = 0, heartIndex = 0; i < 20; i++, heartIndex++ )
+        for ( uint32_t i = 0; i < 20; i++ )
         {
             libtp::tp::d_pane_class::CPaneMgr* currentLifeTexture = mpMeterDraw->mpLifeTexture[i][1];
             if ( !currentLifeTexture )
@@ -162,38 +164,10 @@ namespace mod::user_patch
                 continue;
             }
 
-            if ( heartColorIsRainbow )
+            const uint32_t currentHeartIndexColor = tempHeartColorRGBA[i % heartListSize];
+            for ( uint32_t j = 0x138; j <= 0x144; j += 0x4 )
             {
-                const uint32_t currentHeartIndexColor = tempHeartColorRGBA[heartIndex];
-                for ( uint32_t j = 0x138; j <= 0x144; j += 0x4 )
-                {
-                    *reinterpret_cast<uint32_t*>( mWindowRaw + j ) = currentHeartIndexColor;
-                }
-
-                /*
-                if ( i == maxHeart )
-                {
-                    // Failsafe: Make sure heartIndex is at least 1 for accessing tempHeartColorRGBA
-                    if ( heartIndex < 1 )
-                    {
-                        heartIndex = 1;
-                    }
-
-                    bigHeartColor = tempHeartColorRGBA[( heartIndex - 1 )];
-                }
-                */
-
-                if ( heartIndex >= heartListSize )
-                {
-                    heartIndex = 0;
-                }
-            }
-            else
-            {
-                for ( uint32_t j = 0x138; j <= 0x144; j += 0x4 )
-                {
-                    *reinterpret_cast<uint32_t*>( mWindowRaw + j ) = heartColor;
-                }
+                *reinterpret_cast<uint32_t*>( mWindowRaw + j ) = currentHeartIndexColor;
             }
         }
 
@@ -218,14 +192,13 @@ namespace mod::user_patch
         }
 
         uint32_t tempBigHeartColor;
-        if ( heartColorIsRainbow )
+        if ( heartListSize > 1 )
         {
-            // tempBigHeartColor = bigHeartColor;
             tempBigHeartColor = tempHeartColorRGBA[ulRand( &randNext, heartListSize )];
         }
         else
         {
-            tempBigHeartColor = heartColor;
+            tempBigHeartColor = tempHeartColorRGBA[0];
         }
 
         mWindowRaw = reinterpret_cast<uint32_t>( mpMeterDraw->mpBigHeart->mWindow );
@@ -246,6 +219,8 @@ namespace mod::user_patch
                 }
             }
         }
+
+        delete[] tempHeartColorRGBA;
     }
 
     void setLanternColor( rando::Randomizer* randomizer )
