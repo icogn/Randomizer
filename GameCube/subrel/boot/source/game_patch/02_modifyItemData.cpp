@@ -22,7 +22,10 @@ namespace mod::game_patch
                                                      libtp::data::items::Bomblings_3,
                                                      libtp::data::items::Bombling_1,
                                                      libtp::data::items::Magic_Armor,
+                                                     libtp::data::items::Zora_Armor,
+                                                     libtp::data::items::Wooden_Sword,
                                                      libtp::data::items::Master_Sword,
+                                                     libtp::data::items::Ordon_Shield,
                                                      libtp::data::items::Wooden_Shield,
                                                      libtp::data::items::Hylian_Shield,
                                                      libtp::data::items::Shadow_Crystal,
@@ -196,18 +199,29 @@ namespace mod::game_patch
         memcpy( &itemResourcePtr[items::Horse_Call],
                 &itemResourcePtr[items::Ilias_Charm],
                 sizeof( d_item_data::ItemResource ) );
-        memcpy( &itemResourcePtr[items::Purple_Rupee_Links_House],
-                &itemResourcePtr[items::Purple_Rupee],
-                sizeof( d_item_data::ItemResource ) );
 
         uint32_t loopCount = sizeof( itemsWithNoFieldModel ) / sizeof( itemsWithNoFieldModel[0] );
         for ( uint32_t i = 0; i < loopCount; i++ )
         {
             uint32_t item = itemsWithNoFieldModel[i];
-            // Set the item's field model to use the getItem model.
-            itemInfoPtr[item].mShadowSize = yellowRupeeInfoPtr->mShadowSize;
+            // Set the shadow size to 0xFF for items that don't cast a proper shadow.
+            switch ( item )
+            {
+                case items::Ordon_Shield:
+                case items::Boomerang:
+                {
+                    itemInfoPtr[item].mShadowSize = 0xFF;
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
+            }
+
             itemInfoPtr[item].mCollisionH = yellowRupeeInfoPtr->mCollisionH;
             itemInfoPtr[item].mCollisionR = yellowRupeeInfoPtr->mCollisionR;
+            // Set the item's field model to use the getItem model.
             fieldItemResPtr[item].arcName = itemResourcePtr[item].arcName;
             fieldItemResPtr[item].modelResIdx = itemResourcePtr[item].modelResIdx;
         }

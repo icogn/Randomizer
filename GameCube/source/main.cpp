@@ -45,6 +45,7 @@
 #include "rando/dvdentrynum.h"
 #include "util/texture_utils.h"
 #include "rando/clr0.h"
+#include "tp/d_a_itembase.h"
 
 namespace mod
 {
@@ -149,6 +150,8 @@ namespace mod
                                                        const float scale[3],
                                                        int32_t unk6,
                                                        int32_t itemPickupFlag ) = nullptr;
+
+    KEEP_VAR void ( *return_CheckFieldItemCreateHeap )( libtp::tp::f_op_actor::fopAc_ac_c* actor ) = nullptr;
 
     // Item Wheel trampoline
     KEEP_VAR void ( *return_setLineUpItem )( libtp::tp::d_save::dSv_player_item_c* ) = nullptr;
@@ -731,6 +734,10 @@ namespace mod
         // Spawn the appropriate item with model
         uint8_t itemID = randomizer->getBossItem( item );
         itemID = game_patch::_04_verifyProgressiveItem( mod::randomizer, itemID );
+        if ( item == libtp::data::items::Heart_Container )     // used for Dungeon Heart Containers
+        {
+            parameters = 0x9F;
+        }
         uint32_t params = 0xFF0000 | ( parameters & 0xFF ) << 0x8 | ( itemID & 0xFF );
 
         // If we are in hyrule field then the function is running to give us the Hot Springwater heart piece and we want it to
@@ -780,10 +787,31 @@ namespace mod
                                                      const int16_t rot[3],
                                                      const float scale[3] )
     {
-        events::handleDungeonHeartContainer();     // Set the flag for the dungeon heart container
-                                                   // if this item replaces it.
         item = game_patch::_04_verifyProgressiveItem( mod::randomizer, item );
         return return_createItemForTrBoxDemo( pos, item, itemPickupFlag, roomNo, rot, scale );
+    }
+
+    KEEP_FUNC void handle_CheckFieldItemCreateHeap( libtp::tp::f_op_actor::fopAc_ac_c* actor )
+    {
+        libtp::tp::d_a_itembase::ItemBase* item = static_cast<libtp::tp::d_a_itembase::ItemBase*>( actor );
+        // We determine whether to use the item_resource or the field_item_resource structs to spawn an item based on the item
+        // being created.
+        switch ( item->m_itemNo )
+        {
+            case libtp::data::items::Empty_Bottle:
+            case libtp::data::items::Sera_Bottle:
+            case libtp::data::items::Jovani_Bottle:
+            case libtp::data::items::Coro_Bottle:
+            case libtp::data::items::Purple_Rupee_Links_House:
+            case libtp::data::items::Poe_Soul:
+            {
+                return libtp::tp::d_a_itembase::CheckItemCreateHeap( actor );
+            }
+            default:
+            {
+                return return_CheckFieldItemCreateHeap( actor );
+            }
+        }
     }
 
     KEEP_FUNC void handle_setLineUpItem( libtp::tp::d_save::dSv_player_item_c* unk1 )
@@ -1009,8 +1037,7 @@ namespace mod
             uint32_t donationAmount = *reinterpret_cast<uint32_t*>( reinterpret_cast<uint32_t>( nodeEvent ) + 4 );
             if ( donationAmount == 0x1E )
             {
-                libtp::tp::d_com_inf_game::dComIfG_gameInfo.save.save_file.player.player_status_a.currentRupees =
-                    libtp::tp::d_com_inf_game::dComIfG_gameInfo.save.save_file.player.player_status_a.currentRupees - 100;
+                *reinterpret_cast<uint32_t*>( reinterpret_cast<uint32_t>( nodeEvent ) + 4 ) = 100;
                 return 1;
             }
         }
