@@ -19,10 +19,10 @@ namespace mod::dvdentrynum
         using libtp::gc_wii::dvdfs::DVDConvertPathToEntrynum;
 
         lookupTable[ResObjectKmdl] = DVDConvertPathToEntrynum( "/res/Object/Kmdl.arc" );
-        lookupTable[ResObjectZmdl] = DVDConvertPathToEntrynum( "/res/Object/Zmdl.arc" );
-        lookupTable[ResObjectWmdl] = DVDConvertPathToEntrynum( "/res/Object/Wmdl.arc" );
-        lookupTable[ResObjectCWShd] = DVDConvertPathToEntrynum( "/res/Object/CWShd.arc" );
-        lookupTable[ResObjectSWShd] = DVDConvertPathToEntrynum( "/res/Object/SWShd.arc" );
-        lookupTable[ResObjectHyShd] = DVDConvertPathToEntrynum( "/res/Object/HyShd.arc" );
+        // lookupTable[ResObjectZmdl] = DVDConvertPathToEntrynum( "/res/Object/Zmdl.arc" );
+        // lookupTable[ResObjectWmdl] = DVDConvertPathToEntrynum( "/res/Object/Wmdl.arc" );
+        // lookupTable[ResObjectCWShd] = DVDConvertPathToEntrynum( "/res/Object/CWShd.arc" );
+        // lookupTable[ResObjectSWShd] = DVDConvertPathToEntrynum( "/res/Object/SWShd.arc" );
+        // lookupTable[ResObjectHyShd] = DVDConvertPathToEntrynum( "/res/Object/HyShd.arc" );
     }
 }     // namespace mod::dvdentrynum

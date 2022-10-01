@@ -29,12 +29,15 @@ namespace mod::game_patch
 #ifdef TP_US
         uint32_t* enableCrashScreen = reinterpret_cast<uint32_t*>( 0x8000B8A4 );
         uint32_t* patchMessageCalculation = reinterpret_cast<uint32_t*>( 0x80238F58 );
+        uint32_t* mDoDvdThd_mountArchive_c__execute_setOffset0xcTo1 = reinterpret_cast<uint32_t*>( 0x800160DC );
 #elif defined TP_EU
         uint32_t* enableCrashScreen = reinterpret_cast<uint32_t*>( 0x8000B878 );
         uint32_t* patchMessageCalculation = reinterpret_cast<uint32_t*>( 0x802395D8 );
+        uint32_t* mDoDvdThd_mountArchive_c__execute_setOffset0xcTo1 = reinterpret_cast<uint32_t*>( 0x80016090 );
 #elif defined TP_JP
         uint32_t* enableCrashScreen = reinterpret_cast<uint32_t*>( 0x8000B8A4 );
         uint32_t* patchMessageCalculation = reinterpret_cast<uint32_t*>( 0x802398E0 );
+        uint32_t* mDoDvdThd_mountArchive_c__execute_setOffset0xcTo1 = reinterpret_cast<uint32_t*>( 0x800160DC );
 #endif
 
         // Perform the overwrites
@@ -84,7 +87,6 @@ namespace mod::game_patch
         // r26 (this) into r4. We will hook into the instruction 8 bytes later
         // so that we can do any necessary transforms to the loaded RARC data
         // before setting offset 0xC to 1 to indicate that loading has finished.
-        uint32_t* mDoDvdThd_mountArchive_c__execute_setOffset0xcTo1 = reinterpret_cast<uint32_t*>( 0x800160dc );
         *mDoDvdThd_mountArchive_c__execute_setOffset0xcTo1 = 0x7f44d378;     // or r4, r26, r26
     }
 }     // namespace mod::game_patch

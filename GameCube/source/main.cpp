@@ -1560,6 +1560,13 @@ namespace mod
         return mod::randomizer ? mod::randomizer->getRecolorRgb( recolorId ) : nullptr;
     }
 
+    // This is called in the NON-MAIN thread which is loading the archive where
+    // `mountArchive->mIsDone = true;` would be called normally (this is the
+    // last thing that gets called before the archive is considered loaded). The
+    // archive is no longer automatically marked as loaded, so we need to do
+    // this ourselves when we are done. (This indicates that the archive is
+    // loaded, and whatever was waiting on it will see this byte change the next
+    // time it polls the completion status (polling happens once per frame?))
     KEEP_FUNC void handle_custom_hook_mDoDvdThd_mountArchive_c__execute( libtp::tp::JKRMemArchive* jkrMemArchive,
                                                                          libtp::tp::mDoDvdThd_mountArchive_c* mountArchive )
     {
@@ -1571,14 +1578,16 @@ namespace mod
         using mod::dvdentrynum::getDvdEntryNum;
         using rando::RecolorId;
 
-        // // TODO: move this to the events file
-        // // if ( mountArchive->mEntryNumber == 0x96b )
         if ( mountArchive->mEntryNumber == getDvdEntryNum( DvdEntryNumId::ResObjectKmdl ) )
         {
             // Link wearing Hero's Clothes
             uint8_t* recolorRgb = getRecolorRgb( RecolorId::HerosClothes );
             if ( recolorRgb != nullptr )
             {
+                // Note: you could maybe improve this slightly by finding the
+                // `bmwr` directory a single time and passing the context as the
+                // 3rd arg instead of 0 I think, but I'm not worrying about it
+                // right now. - Isaac
                 JKRArchive::SDIFileEntry* alBmdFileEntry = JKRArchive_findFsResource( jkrMemArchive, "bmwr/al.bmd", 0 );
 
                 if ( alBmdFileEntry )
@@ -1607,6 +1616,28 @@ namespace mod
                 }
             }
         }
+
+        // Note: Leaving in the below comments regarding recoloring other
+        // things. Not everything can be recolored this way -- only CMPR
+        // textures in MemArchives. Even then, it works best when the entire
+        // texture was already the same color. This method looks weird on the
+        // Hylian Shield for example since it is a large number of colors
+        // together. I messed around with just recoloring the red bird, and that
+        // was okay, but probably better to spend more time on it before saying
+        // "well, this is the best we can do".
+
+        // Note that this method is NOT how you recolor things on Midna. Well,
+        // you can recolor some things, but not what anyone is looking for.
+        // IIRC, the body marking color could be changed through MATs (though it
+        // is a different location for her hands when they are actually moving I
+        // think). Midna's hair has a handful of colors which are stored as
+        // properties on her instance, or something along those lines. And the
+        // colors which are used when you are holding B to do the attack are
+        // different as well. Her color during MDH is controlled through a
+        // single-frame color animation IIRC. Note that the Midna you would want
+        // to recolor is actually part of the Wmdl.arc contents (wolf model;
+        // Link in wolf form)  - Isaac
+
         // // else if ( mountArchive->mEntryNumber == 0xc83 )
         // // else if ( mountArchive->mEntryNumber == rando::getDvdEntryNum( rando::DvdEntryNumId::ResObjectZmdl ) )
         // else if ( mountArchive->mEntryNumber == getDvdEntryNum( DvdEntryNumId::ResObjectZmdl ) )
@@ -1785,6 +1816,8 @@ namespace mod
         //     // }
         // }
 
+        // Need to mark the archive as loaded once we are done modifying its
+        // contents.
         mountArchive->mIsDone = true;
 
         return return_custom_hook_mDoDvdThd_mountArchive_c__execute( jkrMemArchive, mountArchive );
